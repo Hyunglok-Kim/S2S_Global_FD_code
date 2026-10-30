@@ -429,7 +429,7 @@ respectively.
   `FDII_TP`             Precipitation FDII component
   `FDII_ET`             Evapotranspiration FDII component
   `FDII_VPD`            VPD FDII component
-  `FDII_COMB`           Combined flash drought intensity index
+  `FDII_C`           Combined flash drought intensity index
   `FD_FLAG`             Flash drought occurrence flag
   `EVENT_ID`            Flash drought event identifier
   `FREQUENCY`           Flash drought event frequency
@@ -446,8 +446,8 @@ respectively.
   `DRO_VPD`             Groundwater-adjusted VPD severity
   `ACTIVE_COUNT`        Number of active FDII components
 
-For example, `S2S_FDII_COMB` represents the combined forecast FDII,
-while `ERA_FDII_COMB` represents the observation/reference product.
+For example, `S2S_FDII_C` represents the combined forecast FDII,
+while `ERA_FDII_C` represents the observation/reference product.
 
 ------------------------------------------------------------------------
 
@@ -548,11 +548,6 @@ parameters may affect the resulting FDII and MFDI products.
 
 ------------------------------------------------------------------------
 
-## 11. Citation and license
-
-If you use this framework in a scientific publication, cite the
-associated research article or repository release once the formal
-citation information is available.
 
 Add the selected open-source license to the repository before public
 distribution. For questions, bug reports, and contributions, use the
