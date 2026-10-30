@@ -77,7 +77,7 @@ WTR = 0.4       # Weight assigned to groundwater depletion trend (GW_DR),
 
 # NOTE:
 # WSD + WTR = 1.0, ensuring that the two groundwater components
-# contribute through a normalized weighted combination.
+# contribute through a normalized weighted ination.
 #
 # The groundwater modifier is calculated as:
 # GW_MOD = 1 + ALPHA_GW * (WSD * GW_SD + WTR * GW_DR)
@@ -296,9 +296,9 @@ def compute_fdii(fd_int, dro):
 
     W_SM = W_TP = W_ET = W_VPD = 0.25
 
-    FDII_COMB = W_SM * FDII_SM + W_TP * FDII_TP + W_ET * FDII_ET + W_VPD * FDII_VPD
-    FDII_COMB = FDII_COMB.where(active >= 2, 0)
-    FD_flag = (FDII_COMB > 0).astype(np.int8)
+    FDII_C = W_SM * FDII_SM + W_TP * FDII_TP + W_ET * FDII_ET + W_VPD * FDII_VPD
+    FDII_C = FDII_C.where(active >= 2, 0)
+    FD_flag = (FDII_C > 0).astype(np.int8)
 
     print("\n📊 ACTIVE VARIABLE COUNT")
     for n in range(5):
@@ -308,7 +308,7 @@ def compute_fdii(fd_int, dro):
     print("\n📊 FDII ACTIVE")
     print_mask_stats("FDII", FD_flag)
 
-    return FDII_SM, FDII_TP, FDII_ET, FDII_VPD, FDII_COMB, FD_flag, active
+    return FDII_SM, FDII_TP, FDII_ET, FDII_VPD, FDII_C, FD_flag, active
 
 
 # =========================================================
@@ -326,8 +326,8 @@ def compute_metrics(event_id, FD_flag, FDII, fd_int):
     frequency = event_id.max("step", skipna=True)
     severity_total = FDII.where(FD_flag == 1).sum("step", skipna=True)
 
-    FD_INT_comb = xr.concat(list(fd_int.values()), dim="var").max("var", skipna=True)
-    intensity = FD_INT_comb.where(FD_flag == 1).max("step", skipna=True)
+    FD_INT_C = xr.concat(list(fd_int.values()), dim="var").max("var", skipna=True)
+    intensity = FD_INT_C.where(FD_flag == 1).max("step", skipna=True)
 
     frequency = frequency.fillna(0)
     severity_total = severity_total.fillna(0)
@@ -366,7 +366,7 @@ def run_pipeline(ds, ds_gw, ds_th, prefix, tag):
     print_stats(f"{tag} GW MODIFIER", GW_mod)
     dro = dro_sev(sev, pers, GW_mod)
 
-    (FDII_SM, FDII_TP, FDII_ET, FDII_VPD, FDII_COMB,
+    (FDII_SM, FDII_TP, FDII_ET, FDII_VPD, FDII_C,
      FD_flag, active) = compute_fdii(fd_int, dro)
 
     event_id = extract_events(FD_flag)
@@ -374,11 +374,11 @@ def run_pipeline(ds, ds_gw, ds_th, prefix, tag):
     frequency, severity_total, intensity, mfdi = compute_metrics(
         event_id,
         FD_flag,
-        FDII_COMB,
+        FDII_C,
         fd_int
     )
 
-    print_stats(f"{tag} FDII", FDII_COMB)
+    print_stats(f"{tag} FDII", FDII_C)
 
     out = xr.Dataset({
         # FINAL FLASH DROUGHT PRODUCTS
@@ -386,7 +386,7 @@ def run_pipeline(ds, ds_gw, ds_th, prefix, tag):
         f"{tag}_FDII_TP": FDII_TP,
         f"{tag}_FDII_ET": FDII_ET,
         f"{tag}_FDII_VPD": FDII_VPD,
-        f"{tag}_FDII_COMB": FDII_COMB,
+        f"{tag}_FDII_C": FDII_C,
         f"{tag}_FD_FLAG": FD_flag.astype(np.int8),
         f"{tag}_MFDI": mfdi,
 
